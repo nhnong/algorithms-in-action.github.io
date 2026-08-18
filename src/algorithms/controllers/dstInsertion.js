@@ -209,7 +209,7 @@ export default {
               10,
               (vis, e, p) => {
                 vis.graph.addNode(e);
-                vis.graph.addEdge(p, e);
+                vis.graph.addEdge(p, e, { direction: 'left' });
                 vis.graph.updateUpperLabel(p, 'p');
                 vis.graph.setNodeColor(e, color_new);
                 vis.graph.setEdgeColor(p, e, color_p_new);
@@ -229,7 +229,6 @@ export default {
             parent = tree[parent].right;
             ptr = tree[parent];
             mask >>= 1;
-            chunker.add('16a');
             chunker.add(17,
               (vis, c, p) => {
                 vis.graph.updateUpperLabel(p, 'p');
@@ -241,7 +240,6 @@ export default {
             chunker.add('update_b');
             chunker.add(18);
           } else {
-            chunker.add('16a');
             chunker.add(17,
               (vis, p) => {
                 vis.graph.updateUpperLabel(p, 'p');
@@ -257,7 +255,7 @@ export default {
               11,
               (vis, e, p) => {
                 vis.graph.addNode(e);
-                vis.graph.addEdge(p, e);
+                vis.graph.addEdge(p, e, { direction: 'right' });
                 vis.graph.updateUpperLabel(p, 'p');
                 vis.graph.setNodeColor(e, color_new);
                 vis.graph.setEdgeColor(p, e, color_p_new);
