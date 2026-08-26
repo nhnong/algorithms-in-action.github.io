@@ -53,6 +53,12 @@ export default {
     const tree = {};
     const root = nodes[0];
     tree[root] = {};
+    const maximumKey = Math.max(...nodes);
+    const initialMask = 2 ** Math.floor(
+      Math.log2(Math.max(maximumKey, 1))
+    );
+
+    chunker.add('init_b');
 
     // populate the ArrayTracer using nodes
     // chunker.add(
@@ -77,10 +83,6 @@ export default {
       },
       [],
     );
-
-    // XXX hack so DST pseudocode can be displayed
-    // eslint-disable-next-line no-constant-condition
-    if (1) return tree; // "if" avoids unreachable code errors
 
     chunker.add(1,
       (vis, r) => {
@@ -118,6 +120,7 @@ export default {
       // BST_Insert() call
       prev = null;
       const element = nodes[i];
+      let mask = initialMask;
       chunker.add(
         1,
         (vis, index, visited, rr, k) => {
@@ -158,8 +161,19 @@ export default {
           },
           [parent, prev]
         );
+
+        if (element === parent) {
+          chunker.add('eq_key',
+            (vis, p) => {
+              vis.graph.updateUpperLabel(p, 'p');
+            },
+            [parent]
+          );
+          break;
+        }
+
         chunker.add(15);
-        if (element < parent) {
+        if ((element & mask) === 0) {
           // chunker.add(16);
           // chunker.add(18);
           if (tree[parent].left !== undefined) {
@@ -167,6 +181,7 @@ export default {
             prev = parent;
             parent = tree[parent].left;
             ptr = tree[parent];
+            mask >>= 1;
             chunker.add(16,
               (vis, c, p) => {
                 // vis.graph.setNodeColor(c, color_c);
@@ -176,6 +191,7 @@ export default {
               },
               [parent, prev]
             );
+            chunker.add('update_b');
             chunker.add(18);
           } else {
             chunker.add(16,
@@ -193,7 +209,7 @@ export default {
               10,
               (vis, e, p) => {
                 vis.graph.addNode(e);
-                vis.graph.addEdge(p, e);
+                vis.graph.addEdge(p, e, { direction: 'left' });
                 vis.graph.updateUpperLabel(p, 'p');
                 vis.graph.setNodeColor(e, color_new);
                 vis.graph.setEdgeColor(p, e, color_p_new);
@@ -204,7 +220,7 @@ export default {
             visitedList.push(element);
             break;
           }
-        } else if (element > parent) {
+        } else {
           // chunker.add(17);
           // chunker.add(18);
           if (tree[parent].right !== undefined) {
@@ -212,7 +228,7 @@ export default {
             prev = parent;
             parent = tree[parent].right;
             ptr = tree[parent];
-            chunker.add('16a');
+            mask >>= 1;
             chunker.add(17,
               (vis, c, p) => {
                 vis.graph.updateUpperLabel(p, 'p');
@@ -221,9 +237,9 @@ export default {
               },
               [parent, prev]
             );
+            chunker.add('update_b');
             chunker.add(18);
           } else {
-            chunker.add('16a');
             chunker.add(17,
               (vis, p) => {
                 vis.graph.updateUpperLabel(p, 'p');
@@ -239,7 +255,7 @@ export default {
               11,
               (vis, e, p) => {
                 vis.graph.addNode(e);
-                vis.graph.addEdge(p, e);
+                vis.graph.addEdge(p, e, { direction: 'right' });
                 vis.graph.updateUpperLabel(p, 'p');
                 vis.graph.setNodeColor(e, color_new);
                 vis.graph.setEdgeColor(p, e, color_p_new);
@@ -250,14 +266,6 @@ export default {
             visitedList.push(element);
             break;
           }
-        } else {
-            chunker.add('eq_key',
-              (vis, p) => {
-                vis.graph.updateUpperLabel(p, 'p');
-              },
-              [parent]
-            );
-          break;
         }
       }
       // deselect everything
