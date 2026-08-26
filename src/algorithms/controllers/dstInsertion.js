@@ -19,6 +19,7 @@
 /* eslint-disable no-plusplus */
 import GraphTracer from '../../components/DataStructures/Graph/GraphTracer';
 import Array1DTracer from '../../components/DataStructures/Array/Array1DTracer';
+import MaskTracer from '../../components/DataStructures/Mask/MaskTracer';
 import {ALGO_COLOR_PALLETE} from '../../components/DataStructures/colors';
 const color_c = ALGO_COLOR_PALLETE.sky;
 const color_p = ALGO_COLOR_PALLETE.peach;
@@ -29,6 +30,10 @@ const color_p_new = ALGO_COLOR_PALLETE.leaf; // p->new edge
 export default {
   initVisualisers() {
     return {
+      mask: {
+        instance: new MaskTracer('mask', null, 'Key + Mask', { overlay: true }),
+        order: 0,
+      },
       // array: {
         // instance: new Array1DTracer('array', null, 'Keys to insert', { arrayItemMagnitudes: true }),
         // order: 0,
@@ -54,11 +59,19 @@ export default {
     const root = nodes[0];
     tree[root] = {};
     const maximumKey = Math.max(...nodes);
-    const initialMask = 2 ** Math.floor(
-      Math.log2(Math.max(maximumKey, 1))
-    );
+    const maxBits = Math.floor(Math.log2(Math.max(maximumKey, 1))) + 1;
+    const initialMaskIndex = maxBits - 1;
+    const initialMask = 2 ** initialMaskIndex;
 
-    chunker.add('init_b');
+    chunker.add(
+      'init_b',
+      (vis, bits, key, mask, maskIndex) => {
+        vis.mask.setMaxBits(bits);
+        vis.mask.setBinary(key);
+        vis.mask.setMask(mask, maskIndex);
+      },
+      [maxBits, root, initialMask, initialMaskIndex],
+    );
 
     // populate the ArrayTracer using nodes
     // chunker.add(
@@ -123,7 +136,7 @@ export default {
       let mask = initialMask;
       chunker.add(
         1,
-        (vis, index, visited, rr, k) => {
+        (vis, index, visited, rr, k, mask, maskIndex) => {
 /*
           for (let j = 1; j < visited.length; j++) {
             vis.graph.leave(visited[j], visited[j - 1]);
@@ -134,8 +147,10 @@ export default {
 */
           vis.graph.setFunctionName("Insert:");
           vis.graph.setFunctionInsertText(` ${k} `);
+          vis.mask.setBinary(k);
+          vis.mask.setMask(mask, maskIndex);
         },
-        [i, visitedList, root, element],
+        [i, visitedList, root, element, initialMask, initialMaskIndex],
       );
       visitedList = [null];
       chunker.add(7);
@@ -191,7 +206,13 @@ export default {
               },
               [parent, prev]
             );
-            chunker.add('update_b');
+            chunker.add(
+              'update_b',
+              (vis, nextMask) => {
+                vis.mask.setMask(nextMask, Math.log2(nextMask));
+              },
+              [mask],
+            );
             chunker.add(18);
           } else {
             chunker.add(16,
@@ -237,7 +258,13 @@ export default {
               },
               [parent, prev]
             );
-            chunker.add('update_b');
+            chunker.add(
+              'update_b',
+              (vis, nextMask) => {
+                vis.mask.setMask(nextMask, Math.log2(nextMask));
+              },
+              [mask],
+            );
             chunker.add(18);
           } else {
             chunker.add(17,
