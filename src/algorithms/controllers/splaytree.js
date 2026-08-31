@@ -47,8 +47,11 @@ class SplayTree {
         || root.key < key && root.right == null) {
       return root;
     }
-    // left only cases (could combine)
+    // left only cases (best combine)
     if (root.key > key && root.left.key > key && root.left.left == null) {
+      return SplayTree.rightRotate(root);
+    }
+    if (root.key > key && root.left.key == key) {
       return SplayTree.rightRotate(root);
     }
     if (root.key > key && root.left.key <= key && root.left.right == null) {
@@ -66,8 +69,11 @@ class SplayTree {
       root.left = SplayTree.leftRotate(root.left);
       return SplayTree.rightRotate(root);
     }
-    // right only cases (could combine)
+    // right only cases (best combine)
     if (root.key < key && root.right.key > key && root.right.left == null) {
+      return SplayTree.leftRotate(root);
+    }
+    if (root.key < key && root.right.key == key) {
       return SplayTree.leftRotate(root);
     }
     if (root.key < key && root.right.key <= key && root.right.right == null) {
@@ -85,34 +91,9 @@ class SplayTree {
       root.right = SplayTree.rightRotate(root.right);
       return SplayTree.leftRotate(root);
     }
-/*
-    if (root.key > key) {
-      if (root.left.key > key) {
-        root.left.left = SplayTree.splay(root.left.left, key);
-        root = SplayTree.rightRotate(root);
-        return root.left == null ? root : SplayTree.rightRotate(root);
-      } else if (root.left.key <= key) {
-        root.left.right = SplayTree.splay(root.left.right, key);
-        if (root.left.right != null) {
-          root.left = SplayTree.leftRotate(root.left);
-        }
-        return root.left == null ? root : SplayTree.rightRotate(root);
-      }
-    } else {
-      if (root.right.key > key) {
-        root.right.left = SplayTree.splay(root.right.left, key);
-        if (root.right.left != null) {
-          root.right = SplayTree.rightRotate(root.right);
-        }
-      } else if (root.right.key < key) {
-        root.right.right = SplayTree.splay(root.right.right, key);
-        root = SplayTree.leftRotate(root);
-      }
-      return root.right == null ? root : SplayTree.leftRotate(root);
-    }
-*/
   }
 
+  // original Geeks for Geeks version
 /*
   static splay(root, key) {
     if (root == null || root.key == key) {
@@ -182,6 +163,42 @@ class SplayTree {
     return node;
   }
 
+  // The delete function for Splay tree.
+  static delete_key(root, key) {
+      let temp;
+      if (!root)
+          return root;
+
+      // Splay the given key (brings key to root, if it's present)
+      root = SplayTree.splay(root, key);
+  
+      // If key is not present, then
+      // return root
+      if (key !== root.key)
+          return root;
+  
+      // key is in root
+      // If left child of root does not exist
+      // return root.right as new root
+      if (!root.left)
+          return root.right;
+
+
+      temp = root.right;
+  
+      // New root is maximum key in left subtree (note
+      // we could use anything >= key here with the same effect);
+      // root.right will therefore be empty.
+      root = SplayTree.splay(root.left, key);
+  
+      // Make the right child of the previous root as
+      // the new root's right child
+      root.right = temp;
+  
+      // return root of the new Splay Tree
+      return root;
+  }
+
   static preOrder(node) {
     if (node != null) {
       console.log(+ node.key + " ");
@@ -222,14 +239,19 @@ root = SplayTree.insert(root, 88);
 root = SplayTree.insert(root, 67);
 root = SplayTree.insert(root, 44);
 root = SplayTree.insert(root, 98);
-root = SplayTree.insert(root, 33);
-root = SplayTree.insert(root, 45);
+// root = SplayTree.insert(root, 33);
+// root = SplayTree.insert(root, 45);
+// console.log(SplayTree.inOrderStr(root));
+// root = SplayTree.insert(root, 50);
 console.log(SplayTree.inOrderStr(root));
-root = SplayTree.insert(root, 50);
+
+root = SplayTree.delete_key(root, 88);
 console.log(SplayTree.inOrderStr(root));
 root = SplayTree.insert(root, 200);
 console.log(SplayTree.inOrderStr(root));
-skey = 100;
+root = SplayTree.delete_key(root, 90);
+console.log(SplayTree.inOrderStr(root));
+skey = 88;
 root = SplayTree.search(root, skey);
 console.log(skey + (root.key == skey? ":)": ":("));
 console.log(SplayTree.inOrderStr(root));
