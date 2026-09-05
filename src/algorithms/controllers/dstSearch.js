@@ -1,5 +1,6 @@
 import {ALGO_COLOR_PALLETE} from '../../components/DataStructures/colors';
-const color_p = ALGO_COLOR_PALLETE.peach;
+const color_path = ALGO_COLOR_PALLETE.peach;
+const color_t = ALGO_COLOR_PALLETE.leaf;
 
 // remove any highlighting etc from tree --> code from AVL tree search
 let uncolor = (graph, tree) => {
@@ -50,7 +51,6 @@ export default {
 
         //Initialization of variables
         let t = root;
-        let t_new = null;
         const keys = Object.keys(tree).map(Number);
         const maximumKey = Math.max(...keys);
         const maxBits = Math.floor(Math.log2(Math.max(maximumKey, 1))) + 1;
@@ -62,7 +62,7 @@ export default {
         chunker.add('DST_Search(t, k)', (vis, tree, mask, target, t) => {
             uncolor(vis.graph, tree);
             vis.graph.setZoom(0.65);
-            vis.graph.setNodeColor(t, color_p);
+            vis.graph.setNodeColor(t, color_t);
             vis.graph.setNodePointerText(t, 't');
             vis.graph.setFunctionInsertText("(t, " + target + ")");
             vis.graph.setFunctionName("DST_Search");
@@ -106,12 +106,13 @@ export default {
 
                 //Traversing to next layer based on decision variable "goLeft"
                 const bookmark = goLeft ? 't <- t.left' : 't <- t.right';
-                chunker.add(bookmark, (vis, tree, target, t) => {
-                    vis.graph.setNodeColor(old_t, undefined);
+                chunker.add(bookmark, (vis, t, old_t) => {
+                    vis.graph.setNodeColor(old_t, color_path);
                     vis.graph.setNodePointerText(old_t, '');
-                    vis.graph.setNodeColor(t, color_p);
+                    vis.graph.setEdgeColor(old_t, t, color_path);
+                    vis.graph.setNodeColor(t, color_t);
                     vis.graph.setNodePointerText(t, 't');
-                }, [tree, target, t]);
+                }, [t, old_t]);
             }
             //Advance mask
             mask >>= 1;
