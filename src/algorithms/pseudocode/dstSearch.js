@@ -1,5 +1,4 @@
-// Note: this code is used for simple binary search trees and also
-// AVL trees.
+// Note: this code is used for DST search trees
 import parse from '../../pseudocode/parse';
 
 export default parse(`
