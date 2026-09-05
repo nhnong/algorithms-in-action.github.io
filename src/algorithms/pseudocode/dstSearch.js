@@ -22,7 +22,7 @@ DST_Search(t, k)    \\B DST_Search(t, k)
             \\Expl{  We have found a node with the desired key k.
             \\Expl}
         \\In}
-        else    
+        else    \\B key not equal
         \\In{
             if mask bit of k.key = 0   \\B if mask bit of k.key=0
             \\In{

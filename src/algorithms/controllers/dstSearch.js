@@ -1,29 +1,9 @@
-/**
- * This file contains the AVL Tree Search algorithm,
- * alongside the visualisation code.
- * NOTE: THIS CODE ALSO USED FOR BST SEARCH
- *
- * XXX needs a bunch more fixes. Best ignore height and balance, highlight
- * nodes at the right points (done), improve display of t if possible,...
- *
- * The AVL Tree Search algorithm is used to find a node.
- * 
- * The search algorithm is based on the tree created by the insertion algorithm. 
- * By accessing the visualized AVL tree, it retrieves the complete tree structure. 
- * The input is a node to be searched for, and the algorithm starts from the root, 
- * traversing down to the child nodes to find the target node.
- */
-
-// old colour interface used visit, select and leave; similar interface
-// reproduced here with new color interface
-import {BSTColors as colors} from './BSTColors';
-let visitn = (graph, c, p) => {
-  if (p !== undefined) {
-    graph.setNodeColor(p, colors.SPATH_N);
-    graph.setEdgeColor(p, c, colors.SPATH_E);
-  }
-  graph.setNodeColor(c, colors.SPATH_N);
-}
+import {ALGO_COLOR_PALLETE} from '../../components/DataStructures/colors';
+const color_c = ALGO_COLOR_PALLETE.sky;
+const color_p = ALGO_COLOR_PALLETE.peach;
+const color_new = ALGO_COLOR_PALLETE.leaf;
+const color_p_c = ALGO_COLOR_PALLETE.peach; // p->c edge
+const color_p_new = ALGO_COLOR_PALLETE.leaf; // p->new edge
 
 // remove any highlighting etc from tree
 let uncolor = (graph, tree) => {
@@ -49,9 +29,13 @@ export default {
         // clear existing trace, if any
         visualiser.graph.instance.clear();
         return {
+            mask: {
+                instance: visualiser.mask.instance,
+                order: 0,
+            },
             graph: {
                 instance: visualiser.graph.instance,
-                order: 0,
+                order: 1,
             },
         };
     },
@@ -65,80 +49,75 @@ export default {
     run(chunker, { visualiser, target }) {
         // get whole tree
         const tree = visualiser.graph.instance.getTree();
-        let root = visualiser.graph.instance.getRoot();
+        const root = visualiser.graph.instance.getRoot();
+        if (root === undefined) return 'fail';
 
-        let current = root;
-        let parent = null;
+        let t = root;
+        let t_new = null;
 
-        chunker.add('AVL_Search(t, k)', (vis, c, p, t) => {
-            vis.graph.setZoom(0.55);
-            // Remove all the recursion rectangles first
-            vis.graph.popAllRectStack();
-            // remove any highlighting etc
+        const keys = Object.keys(tree).map(Number);
+        const maximumKey = Math.max(...keys);
+        const maxBits = Math.floor(Math.log2(Math.max(maximumKey, 1))) + 1;
+        const initialMaskIndex = maxBits - 1;
+        let mask = 2 ** initialMaskIndex;
+        let maskIndex = initialMaskIndex;
+        console.log('mask value: ' + initialMaskIndex);
+
+        chunker.add('DST_Search(t, k)', (vis, tree, mask, target, t) => {
+            uncolor(vis.graph, tree);
+            vis.graph.setZoom(0.65);
+            vis.graph.setNodeColor(t, color_p);
+            vis.graph.setNodePointerText(t, 't');
             vis.graph.setFunctionInsertText("(t, " + target + ")");
-            vis.graph.setFunctionName("BST_Search");
-            uncolor(vis.graph, t);
-            visitn(vis.graph, c, p);
-        }, [current, parent, tree]);
-        if (!tree)
-            chunker.add('while t not Empty');
+            vis.graph.setFunctionName("DST_Search");
+            vis.mask.setBinary(target);
+        }, [tree, mask, target, t]);
 
-        let ptr = tree;
-        parent = current;
-
+        chunker.add('set M', (vis, mask, maskIndex, maxBits) => {
+            vis.mask.setMaxBits(maxBits);
+            vis.mask.setMask(mask, maskIndex);
+        }, [mask, maskIndex, maxBits]);
+ 
         /* eslint-disable no-constant-condition */
+        let iter = 0;
         while (true) {
-            chunker.add('while t not Empty');
-
-            if (current === undefined || !ptr) // should use null
+            if (iter > 10){
                 break;
+            }
+            chunker.add('while t not Empty');
+            if (t === undefined){
+                chunker.add('return NotFound', (vis) => vis.graph.setText('Key not found'));
+                return 'fail';
+            }
 
-            let node = current;
-            if (node !== target) {
-                chunker.add('if t.key = k.key', (vis, c, p) => {
-                    vis.graph.setNodeColor(c, colors.NOT_EQ_N);
-                }, [node, parent]);
-            } else {
-                chunker.add('if t.key = k.key', (vis, c, p) => {
-                    vis.graph.setNodeColor(c, colors.FOUND_N);
-                }, [node, parent]);
-                chunker.add('return t', (vis, c, p) => {
-                    // vis.graph.setNodeColor(c, colors.FOUND_N);
-                    // vis.graph.setEdgeColor(p, c, colors.FOUND_E);
-                    vis.graph.setText('Key found');
-                }, [node, parent]);
+            chunker.add('if t.key = k.key');
+            if (t === target){
+                chunker.add('return t', (vis) => {
+                    vis.graph.setText('FOUND!');
+                }, []);
                 return 'success';
             }
+            else{
+                chunker.add('key not equal');
+                chunker.add('if mask bit of k.key=0');
+                const goLeft = (target & mask) === 0;
+                const old_t = t;
+                t = goLeft ? tree[old_t].left : tree[old_t].right;
 
-            // chunker.add('if n.key > k');
-            chunker.add('return t', (vis, c, p) => {
-                vis.graph.setNodeColor(c, colors.PATH_N);
-            }, [node, parent]);
-            if (target < node) {
-                parent = node;
-                current = tree[node].left;
-                ptr = tree[node];
-                if (current !== undefined) {
-
-                    chunker.add('t <- t.left', (vis, c, p) => visitn(vis.graph, c, p), [current, parent]);
-                } else {
-                    chunker.add('t <- t.left', (vis) => vis.graph.setText('t = Empty'));
-                }
-            } else {
-                parent = node;
-                current = tree[node].right;
-                ptr = tree[node];
-                // if current node has right child
-                if (current !== undefined) {
-                    chunker.add('t <- t.right', (vis, c, p) => visitn(vis.graph, c, p), [current, parent]);
-                } else {
-                    chunker.add('t <- t.right', (vis) => vis.graph.setText('t = Empty'));
-                }
+                const bookmark = goLeft ? 't <- t.left' : 't <- t.right';
+                chunker.add(bookmark, (vis, tree, target, t) => {
+                    vis.graph.setNodePointerText(old_t, '');
+                    uncolor(vis.graph, tree);
+                    vis.graph.setNodeColor(t, color_p);
+                    vis.graph.setNodePointerText(t, 't');
+                }, [tree, target, t]);
             }
+            mask >>= 1;
+            maskIndex--;
+            chunker.add('m <- m >> 1', (vis, mask, maskIndex) => {
+                vis.mask.setMask(mask, maskIndex);
+            }, [mask, maskIndex]);
+            iter++;
         }
-
-        chunker.add('return NotFound', (vis) => vis.graph.setText('Key not found'));
-        return 'fail';
     },
 };
-
