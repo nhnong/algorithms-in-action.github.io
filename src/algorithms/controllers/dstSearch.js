@@ -1,9 +1,5 @@
 import {ALGO_COLOR_PALLETE} from '../../components/DataStructures/colors';
-const color_c = ALGO_COLOR_PALLETE.sky;
 const color_p = ALGO_COLOR_PALLETE.peach;
-const color_new = ALGO_COLOR_PALLETE.leaf;
-const color_p_c = ALGO_COLOR_PALLETE.peach; // p->c edge
-const color_p_new = ALGO_COLOR_PALLETE.leaf; // p->new edge
 
 // remove any highlighting etc from tree
 let uncolor = (graph, tree) => {
