@@ -106,8 +106,8 @@ export default {
 
                 const bookmark = goLeft ? 't <- t.left' : 't <- t.right';
                 chunker.add(bookmark, (vis, tree, target, t) => {
+                    vis.graph.setNodeColor(old_t, undefined);
                     vis.graph.setNodePointerText(old_t, '');
-                    uncolor(vis.graph, tree);
                     vis.graph.setNodeColor(t, color_p);
                     vis.graph.setNodePointerText(t, 't');
                 }, [tree, target, t]);
