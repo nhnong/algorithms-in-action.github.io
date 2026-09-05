@@ -95,11 +95,11 @@ export default {
 
             let node = current;
             if (node !== target) {
-                chunker.add('if n.key = k', (vis, c, p) => {
+                chunker.add('if t.key = k.key', (vis, c, p) => {
                     vis.graph.setNodeColor(c, colors.NOT_EQ_N);
                 }, [node, parent]);
             } else {
-                chunker.add('if n.key = k', (vis, c, p) => {
+                chunker.add('if t.key = k.key', (vis, c, p) => {
                     vis.graph.setNodeColor(c, colors.FOUND_N);
                 }, [node, parent]);
                 chunker.add('return t', (vis, c, p) => {
@@ -111,7 +111,7 @@ export default {
             }
 
             // chunker.add('if n.key > k');
-            chunker.add('if n.key > k', (vis, c, p) => {
+            chunker.add('return t', (vis, c, p) => {
                 vis.graph.setNodeColor(c, colors.PATH_N);
             }, [node, parent]);
             if (target < node) {
@@ -120,9 +120,9 @@ export default {
                 ptr = tree[node];
                 if (current !== undefined) {
 
-                    chunker.add('t <- n.left', (vis, c, p) => visitn(vis.graph, c, p), [current, parent]);
+                    chunker.add('t <- t.left', (vis, c, p) => visitn(vis.graph, c, p), [current, parent]);
                 } else {
-                    chunker.add('t <- n.left', (vis) => vis.graph.setText('t = Empty'));
+                    chunker.add('t <- t.left', (vis) => vis.graph.setText('t = Empty'));
                 }
             } else {
                 parent = node;
@@ -130,9 +130,9 @@ export default {
                 ptr = tree[node];
                 // if current node has right child
                 if (current !== undefined) {
-                    chunker.add('t <- n.right', (vis, c, p) => visitn(vis.graph, c, p), [current, parent]);
+                    chunker.add('t <- t.right', (vis, c, p) => visitn(vis.graph, c, p), [current, parent]);
                 } else {
-                    chunker.add('t <- n.right', (vis) => vis.graph.setText('t = Empty'));
+                    chunker.add('t <- t.right', (vis) => vis.graph.setText('t = Empty'));
                 }
             }
         }
