@@ -21,16 +21,12 @@ import GraphTracer from '../../components/DataStructures/Graph/GraphTracer';
 import Array1DTracer from '../../components/DataStructures/Array/Array1DTracer';
 import MaskTracer from '../../components/DataStructures/Mask/MaskTracer';
 import {ALGO_COLOR_PALLETE} from '../../components/DataStructures/colors';
+import { createTidyTreeLayout } from './helpers/tidyTreeLayout';
 const color_c = ALGO_COLOR_PALLETE.sky;
 const color_p = ALGO_COLOR_PALLETE.peach;
 const color_new = ALGO_COLOR_PALLETE.leaf;
 const color_p_c = ALGO_COLOR_PALLETE.peach; // p->c edge
 const color_p_new = ALGO_COLOR_PALLETE.leaf; // p->new edge
-
-const TREE_ROOT_Y = -260;
-const TREE_LEVEL_GAP = 120;
-const TREE_NODE_GAP = 90;
-const TREE_SINGLE_CHILD_OFFSET = 70;
 
 const buildFinalTree = (nodes, initialMask) => {
   const finalTree = { [nodes[0]]: {} };
@@ -57,72 +53,6 @@ const buildFinalTree = (nodes, initialMask) => {
   }
 
   return finalTree;
-};
-
-const getContours = (positions) => {
-  const left = [];
-  const right = [];
-
-  Object.values(positions).forEach(({ x, depth }) => {
-    left[depth] = left[depth] === undefined ? x : Math.min(left[depth], x);
-    right[depth] = right[depth] === undefined ? x : Math.max(right[depth], x);
-  });
-
-  return { left, right };
-};
-
-const shiftLayout = (layout, xOffset) => Object.fromEntries(
-  Object.entries(layout.positions).map(([key, position]) => [
-    key,
-    { x: position.x + xOffset, depth: position.depth + 1 },
-  ]),
-);
-
-const createTidyPositions = (tree, root) => {
-  const layoutSubtree = (key) => {
-    const leftKey = tree[key].left;
-    const rightKey = tree[key].right;
-    const leftLayout = leftKey === undefined ? null : layoutSubtree(leftKey);
-    const rightLayout = rightKey === undefined ? null : layoutSubtree(rightKey);
-    const positions = { [key]: { x: 0, depth: 0 } };
-
-    if (leftLayout && rightLayout) {
-      let childOffset = TREE_SINGLE_CHILD_OFFSET;
-      const sharedDepth = Math.min(
-        leftLayout.contours.right.length,
-        rightLayout.contours.left.length,
-      );
-
-      for (let depth = 0; depth < sharedDepth; depth++) {
-        const requiredOffset = (
-          leftLayout.contours.right[depth]
-          - rightLayout.contours.left[depth]
-          + TREE_NODE_GAP
-        ) / 2;
-        childOffset = Math.max(childOffset, requiredOffset);
-      }
-
-      Object.assign(positions, shiftLayout(leftLayout, -childOffset));
-      Object.assign(positions, shiftLayout(rightLayout, childOffset));
-    } else if (leftLayout) {
-      Object.assign(positions, shiftLayout(leftLayout, -TREE_SINGLE_CHILD_OFFSET));
-    } else if (rightLayout) {
-      Object.assign(positions, shiftLayout(rightLayout, TREE_SINGLE_CHILD_OFFSET));
-    }
-
-    return { positions, contours: getContours(positions) };
-  };
-
-  const layout = layoutSubtree(root);
-  return Object.fromEntries(
-    Object.entries(layout.positions).map(([key, position]) => [
-      key,
-      {
-        x: position.x,
-        y: TREE_ROOT_Y + position.depth * TREE_LEVEL_GAP,
-      },
-    ]),
-  );
 };
 
 export default {
@@ -160,10 +90,14 @@ export default {
     const maxBits = Math.floor(Math.log2(Math.max(maximumKey, 1))) + 1;
     const initialMaskIndex = maxBits - 1;
     const initialMask = 2 ** initialMaskIndex;
-    const positions = createTidyPositions(
-      buildFinalTree(nodes, initialMask),
+    const finalTree = buildFinalTree(nodes, initialMask);
+    const positions = createTidyTreeLayout({
       root,
-    );
+      getId: key => key,
+      getLeft: key => finalTree[key].left,
+      getRight: key => finalTree[key].right,
+      rootY: -260,
+    });
 
     chunker.add(
       'init_b',
@@ -221,7 +155,7 @@ export default {
         vis.graph.setFunctionName("Inserted:");
         // vis.graph.setNodeColor(r, color_new);
       },
-      [root, positions[root]],
+      [root, positions.get(root)],
     );
 /*
     chunker.add('end',
@@ -339,7 +273,7 @@ export default {
                 vis.graph.setNodeColor(e, color_new);
                 vis.graph.setEdgeColor(p, e, color_p_new);
               },
-              [element, parent, positions[element]],
+              [element, parent, positions.get(element)],
             );
             visitedList.push(element);
             break;
@@ -391,7 +325,7 @@ export default {
                 vis.graph.setNodeColor(e, color_new);
                 vis.graph.setEdgeColor(p, e, color_p_new);
               },
-              [element, parent, positions[element]],
+              [element, parent, positions.get(element)],
             );
             visitedList.push(element);
             break;
