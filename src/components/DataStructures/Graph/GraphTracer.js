@@ -810,6 +810,13 @@ class GraphTracer extends Tracer {
     }
   }
 
+  setNodePointerText(id, text = '') {
+    const node = this.findNode(id);
+    if (!node) return;
+    node.isPointer = text === '' ? 0 : 1;
+    node.pointerText = text;
+  }
+
   // deprecated interface
   selectOrDeselect(select, target, source = null) {
     const edge = this.findEdge(source, target);
