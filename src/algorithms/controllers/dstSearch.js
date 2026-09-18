@@ -112,13 +112,18 @@ export default {
 
                 //Traversing to next layer based on decision variable "goLeft"
                 const bookmark = goLeft ? 't <- t.left' : 't <- t.right';
-                chunker.add(bookmark, (vis, t, old_t) => {
-                    vis.graph.setNodeColor(old_t, color_path);
-                    vis.graph.setNodePointerText(old_t, '');
-                    vis.graph.setEdgeColor(old_t, t, color_path);
-                    vis.graph.setNodeColor(t, color_t);
-                    vis.graph.setNodePointerText(t, 't');
-                }, [t, old_t]);
+                if (t !== undefined) {
+                    chunker.add(bookmark, (vis, next, prevNode) => {
+                        vis.graph.setNodeColor(prevNode, color_path);
+                        vis.graph.setNodePointerText(prevNode, '');
+                        vis.graph.setEdgeColor(prevNode, next, color_path);
+                        vis.graph.setNodeColor(next, color_t);
+                        vis.graph.setNodePointerText(next, 't');
+                    }, [t, old_t]);
+                } 
+                else {
+                    chunker.add(bookmark, (vis) => vis.graph.setText('t = Empty'));
+                }
             }
             //Advance mask
             mask >>= 1;
