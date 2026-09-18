@@ -1,6 +1,7 @@
 import {ALGO_COLOR_PALLETE} from '../../components/DataStructures/colors';
 const color_path = ALGO_COLOR_PALLETE.peach;
-const color_t = ALGO_COLOR_PALLETE.leaf;
+const color_t = ALGO_COLOR_PALLETE.peach;
+const color_found = ALGO_COLOR_PALLETE.leaf;
 
 // remove any highlighting etc from tree --> code from AVL tree search
 let uncolor = (graph, tree) => {
@@ -92,7 +93,10 @@ export default {
 
             //Root key same as target
             if (t === target){
-                chunker.add('return t', (vis) => vis.graph.setText('KEY FOUND!'));
+                chunker.add('return t', (vis) => {
+                    vis.graph.setNodeColor(t, color_found); 
+                    vis.graph.setText('KEY FOUND!')
+                })
                 return 'success';
             }
             //Root key different
