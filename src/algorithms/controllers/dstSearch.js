@@ -10,6 +10,7 @@ let uncolor = (graph, tree) => {
     let l = tree[p].left;
     let r = tree[p].right;
     let n = Number(p);
+    graph.setNodePointerText(n, '');
     graph.setNodeColor(n, undefined);
     if (l)
       graph.setEdgeColor(n, l, undefined);
