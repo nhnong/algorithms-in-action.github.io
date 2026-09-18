@@ -2,6 +2,7 @@ import {ALGO_COLOR_PALLETE} from '../../components/DataStructures/colors';
 const color_path = ALGO_COLOR_PALLETE.peach;
 const color_t = ALGO_COLOR_PALLETE.peach;
 const color_found = ALGO_COLOR_PALLETE.leaf;
+const color_not_found = ALGO_COLOR_PALLETE.apple;
 
 // remove any highlighting etc from tree --> code from AVL tree search
 let uncolor = (graph, tree) => {
@@ -62,7 +63,7 @@ export default {
         //Initializing graph for transition from insertion to search
         chunker.add('DST_Search(t, k)', (vis, tree, mask, target, t) => {
             uncolor(vis.graph, tree);
-            vis.graph.setZoom(0.60);
+            vis.graph.setZoom(0.6);
             vis.graph.setNodeColor(t, color_t);
             vis.graph.setNodePointerText(t, 't');
             vis.graph.setFunctionInsertText("(t, " + target + ")");
@@ -74,7 +75,6 @@ export default {
         chunker.add('set M', (vis, mask, maskIndex, maxBits) => {
             vis.mask.setMaxBits(maxBits);
             vis.mask.setMask(mask, maskIndex);
-            vis.graph.setText('Initialize mask');
         }, [mask, maskIndex, maxBits]);
  
         /* eslint-disable no-constant-condition */
@@ -87,10 +87,9 @@ export default {
             }
 
             //t is not empty, check root key
-            chunker.add('if t.key = k.key', (vis, t, target) => {
-                vis.graph.setText('Compare ' + target + ' and ' + t);
-            }, [t, target]);
-
+            chunker.add('if t.key = k.key', (vis, current) => {
+                vis.graph.setNodeColor(current, current === target ? color_found : color_not_found);
+            }, [t]);
             //Root key same as target
             if (t === target){
                 chunker.add('return t', (vis) => {
@@ -101,7 +100,9 @@ export default {
             }
             //Root key different
             else{
-                chunker.add('key not equal', ((vis) => vis.graph.setText('Key != Target')));
+                chunker.add('key not equal', (vis, current) => {
+                    vis.graph.setNodeColor(current, color_t)
+                }, [t]);
                 chunker.add('if mask bit of k.key=0');
 
                 //Setup for dynamic traversal of tree
@@ -112,7 +113,6 @@ export default {
                 //Traversing to next layer based on decision variable "goLeft"
                 const bookmark = goLeft ? 't <- t.left' : 't <- t.right';
                 chunker.add(bookmark, (vis, t, old_t) => {
-                    vis.graph.setText(goLeft ? 'Traverse left' : 'Traverse right');
                     vis.graph.setNodeColor(old_t, color_path);
                     vis.graph.setNodePointerText(old_t, '');
                     vis.graph.setEdgeColor(old_t, t, color_path);
@@ -124,7 +124,6 @@ export default {
             mask >>= 1;
             maskIndex--;
             chunker.add('m <- m >> 1', (vis, mask, maskIndex) => {
-                vis.graph.setText('Advance mask');
                 vis.mask.setMask(mask, maskIndex);
             }, [mask, maskIndex]);
         }
