@@ -37,4 +37,4 @@ export { default as floydwarsh } from './floydwarsh.md';
 export { default as splaytree } from './splaytree.md';
 
 export { default as dst } from './dst.md';
-
+export { default as trie } from '../explanations/trie.md';

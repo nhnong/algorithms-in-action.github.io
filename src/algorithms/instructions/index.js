@@ -200,4 +200,4 @@ export const floydwarsh = graphInstructionsTC;
 export const splaytree = bstInstructions;
 
 export const dst = bstInstructions;
-
+export const trie = [bstInstructions[0]];

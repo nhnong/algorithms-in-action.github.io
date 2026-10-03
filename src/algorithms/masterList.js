@@ -607,6 +607,18 @@ const algorithmMetadata = {
     "instructionsKey": "splaytree"
   },
 
+  "trie": {
+    "name": "Binary Trie",
+    "category": "Insert/Search",
+    "noDeploy": false,
+    "keywords": ["radix", "RST", "binary", "trie"],
+    "controller": { "insertion": "trieInsertion" },
+    "pseudocode": { "insertion": "trieInsertion" },
+    "paramKey": "trie",
+    "explanationKey": "trie",
+    "extraInfoKey": "trie",
+    "instructionsKey": "trie"
+  },
 	"dst": {
     "name": "Digital Search Tree",
     "category": "Insert/Search",
