@@ -591,7 +591,7 @@ class GraphRenderer extends Renderer {
 
         {/* Dynamically adjust the node size */}
         <g
-          className={classes(styles.graph)}
+          className={classes(styles.graph, this.props.data.presentation === 'trie' && styles.trie)}
           style={radius != null ? { '--circle-radius': `${radius}px` } : { '--circle-radius': `${nodeRadius}px` }}
         >
 
@@ -826,6 +826,7 @@ class GraphRenderer extends Renderer {
                 transition={{ duration: 1 }}
                 className={classes(
                   styles.node,
+                  this.props.data.presentation === 'trie' && node.isTerminal && styles.terminal,
                   selectNode && styles.selected,
                   sorted && styles.sorted,
 
@@ -869,7 +870,11 @@ class GraphRenderer extends Renderer {
                   r={nodeRadius}
                 />
 
-                <text className={classes(styles.id, style && style.textStyle)}>
+                <text className={classes(styles.id, style && style.textStyle)}
+                  style={this.props.data.presentation === 'trie'
+                    ? { fontSize: Math.min(24, 72 / Math.max(String(value).length, 1)) }
+                    : undefined}
+                >
                   {value}
                 </text>
                 {isWeighted && (

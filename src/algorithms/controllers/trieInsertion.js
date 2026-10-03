@@ -27,17 +27,19 @@ export default {
     });
     const positions = createTidyTreeLayout({
       root, getLeft: node => node.children[0], getRight: node => node.children[1],
-      nodeGap: 85, singleChildOffset: 45, levelGap: 95, rootY: -bits * 95 / 2,
+      nodeGap: 100, singleChildOffset: 55, levelGap: 100, rootY: -bits * 100 / 2,
     });
     const maxX = Math.max(...Array.from(positions.values(), p => Math.abs(p.x)));
     chunker.add(1, vis => {
       vis.graph.setPauseLayout(true);
       vis.graph.setZoom(1);
+      vis.graph.presentation = 'trie';
       vis.graph.weighted(true);
-      vis.graph.dimensions.nodeRadius = 22;
+      vis.graph.dimensions.nodeRadius = 26;
       vis.graph.dimensions.baseWidth = Math.max(650, maxX * 2 + 150);
-      vis.graph.dimensions.baseHeight = Math.max(350, bits * 95 + 120);
+      vis.graph.dimensions.baseHeight = Math.max(350, bits * 100 + 150);
       vis.graph.addNode('root', '');
+      vis.graph.updateUpperLabel('root', 'root');
       const position = positions.get('root');
       vis.graph.setNodePosition('root', position.x, position.y);
       vis.graph.setNodePointerText('root', 't');
@@ -96,7 +98,8 @@ export default {
       node.key = key;
       chunker.add(6, (vis, id, k, exists) => {
         vis.graph.updateNode(id, String(k));
-        vis.graph.setNodeColor(id, ALGO_COLOR_PALLETE.leaf);
+        vis.graph.findNode(id).isTerminal = true;
+        vis.graph.setNodeColor(id, undefined);
         vis.graph.setSelect_Circle_Count(id);
         vis.mask.setPointerStatus(exists ? `Already inserted: ${k}` : `Inserted: ${k}`);
       }, [node.id, key, duplicate]);
