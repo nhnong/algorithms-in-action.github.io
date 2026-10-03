@@ -53,6 +53,18 @@
     text-align: center;
 }
 
+.compact .grouped {
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 3px 7px;
+    padding: 7px 8px 7px 0;
+}
+
+.digitGroup {
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
 // used to ephasise base 4/binary: whatever is the most important thing to
 // look at
 .emphTitle {

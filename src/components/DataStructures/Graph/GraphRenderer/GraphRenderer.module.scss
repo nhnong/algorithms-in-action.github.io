@@ -43,6 +43,7 @@
     fill: var(--graph-node-id-fill);
     font-size: 22px;
     font-weight: 600;
+    dominant-baseline: middle;
     stroke: var(--mid-anim-bg);
     stroke-width: 7px;
     stroke-linejoin: round;

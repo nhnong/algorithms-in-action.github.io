@@ -34,7 +34,7 @@ function TrieParam({ list }) {
           REFRESH_FUNCTION={() => [5, 7, 2]} ALGORITHM_NAME="insertion"
           EXAMPLE="5,7,2" setMessage={setMessage} handleSubmit={insert} />
       </div>
-      <p className="generalText">Binary (R = 2). Keys share a width based on the largest key. End nodes display stored keys.</p>
+      <p className="generalText">0 goes left; 1 goes right. Green outlines mark stored keys.</p>
       {message && <p role="alert" className="generalText">{message}</p>}
     </>
   );
