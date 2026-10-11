@@ -40,4 +40,8 @@ export { default as floydwarsh } from './floydwarsh.js';
 export { default as splaytree } from './splaytree.js';
 
 export { default as dst } from './dst.js';
+
+export { default as msort_list_bup } from './msort_list_bup.js';
+
 export { default as trie } from './trie.js';
+
