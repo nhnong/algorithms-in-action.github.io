@@ -24,6 +24,8 @@ class MaskRenderer extends Renderer {
       highlight,
       addBase4,
       overlay,
+      pointerStatus,
+      presentation,
     } = this.props.data;
     if (overlay) {
       const selectedBit = (binaryData & maskData) === 0 ? 0 : 1;
@@ -43,6 +45,7 @@ class MaskRenderer extends Renderer {
             maxBits={maxBits}
             highlight={highlight}
             compact={true}
+            groupSize={presentation === 'trie' && maxBits > 12 ? 4 : 0}
           />
           <BinaryRenderer
             header={"Mask"}
@@ -50,10 +53,16 @@ class MaskRenderer extends Renderer {
             maxBits={maxBits}
             highlight={highlight}
             compact={true}
+            groupSize={presentation === 'trie' && maxBits > 12 ? 4 : 0}
           />
           <div className={styles.decision}>
             BIT {selectedBit} &rarr; {direction}
           </div>
+          {pointerStatus != null && (
+            <div className={styles.pointerStatus} role="status" aria-live="polite">
+              {pointerStatus}
+            </div>
+          )}
         </div>
       );
     }
