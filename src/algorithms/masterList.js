@@ -663,7 +663,7 @@ const algorithmMetadata = {
     "extraInfoKey": "msort_list_bup",
     "instructionsKey": "msort_list_bup"
   },
-
+/*
 	"trie": {
     "name": "Trie (prototype)",
     "category": "Insert/Search",
@@ -688,6 +688,7 @@ const algorithmMetadata = {
     "extraInfoKey": "trie",
     "instructionsKey": "trie"
   },
+  */
 };
 //_MASTER_LIST_END_
 
