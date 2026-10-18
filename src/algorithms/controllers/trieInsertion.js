@@ -45,7 +45,6 @@ export default {
       vis.graph.setNodePosition('root', position.x, position.y);
       vis.graph.setNodePointerText('root', 't');
       vis.graph.setNodeColor('root', ALGO_COLOR_PALLETE.sky);
-      vis.mask.presentation = 'trie';
       vis.mask.setMaxBits(bits);
       vis.mask.setBinary(nodes[0] || 0);
       vis.mask.setMask(2 ** (bits - 1), bits - 1);

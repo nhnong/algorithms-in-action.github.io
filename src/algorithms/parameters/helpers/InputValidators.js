@@ -20,6 +20,30 @@ export const commaSeparatedNumberListValidCheck = (t) => {
   return { valid: true, error: null };
 };
 
+// Largest key the binary trie and DST accept: 31 bits keeps JS bitwise
+// mask tests (key & mask) correct and both mask displays the same width.
+export const MAX_BINARY_KEY = 2 ** 31 - 1;
+
+const binaryKeyInRange = (t) => Number(t) <= MAX_BINARY_KEY;
+
+export const binaryKeyListValidCheck = (t) => {
+  const result = commaSeparatedNumberListValidCheck(t);
+  if (!result.valid) return result;
+  if (!t.split(',').every(binaryKeyInRange)) {
+    return { valid: false, error: ERRORS.GEN_BINARY_KEY_RANGE };
+  }
+  return { valid: true, error: null };
+};
+
+export const binaryKeyValidCheck = (t) => {
+  const result = singleNumberValidCheck(t);
+  if (!result.valid) return result;
+  if (!binaryKeyInRange(t)) {
+    return { valid: false, error: ERRORS.GEN_BINARY_KEY_RANGE };
+  }
+  return { valid: true, error: null };
+};
+
 export const stringListValidCheck = (t) => {
   if (!t || t.trim() === "") {
     return { valid: false, error: ERRORS.GEN_EMPTY_INPUT };

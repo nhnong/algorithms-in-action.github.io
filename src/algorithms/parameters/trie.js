@@ -5,6 +5,8 @@ import { URLContext } from '../../context/urlState';
 import { GlobalActions } from '../../context/actions';
 import ListParam from './helpers/ListParam';
 import { withAlgorithmParams } from './helpers/urlHelpers';
+import { binaryKeyListValidCheck } from './helpers/InputValidators';
+import { errorParamMsg } from './helpers/ParamMsg';
 
 function TrieParam({ list }) {
   const { dispatch } = useContext(GlobalContext);
@@ -15,15 +17,14 @@ function TrieParam({ list }) {
 
   const insert = event => {
     event.preventDefault();
-    const input = event.target[0].value.trim();
-    const values = input.split(',').map(value => Number(value.trim()));
-    if (!/^\d+(\s*,\s*\d+)*$/.test(input)
-        || values.some(value => !Number.isInteger(value) || value > 2147483647)) {
-      setMessage('Enter comma-separated whole numbers from 0 to 2147483647.');
+    const input = event.target[0].value.replace(/\s+/g, '');
+    const { valid, error } = binaryKeyListValidCheck(input);
+    if (!valid) {
+      setMessage(errorParamMsg(error, '5,7,2'));
       return;
     }
     setMessage(null);
-    dispatch(GlobalActions.RUN_ALGORITHM, { name: 'trie', mode: 'insertion', nodes: values });
+    dispatch(GlobalActions.RUN_ALGORITHM, { name: 'trie', mode: 'insertion', nodes: input.split(',').map(Number) });
   };
 
   return (
@@ -35,7 +36,7 @@ function TrieParam({ list }) {
           EXAMPLE="5,7,2" setMessage={setMessage} handleSubmit={insert} />
       </div>
       <p className="generalText">0 goes left; 1 goes right. Green outlines mark stored keys.</p>
-      {message && <p role="alert" className="generalText">{message}</p>}
+      {message}
     </>
   );
 }

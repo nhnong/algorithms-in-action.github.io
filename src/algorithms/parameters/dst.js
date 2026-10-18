@@ -12,7 +12,7 @@ import { GlobalActions } from '../../context/actions';
 import ListParam from './helpers/ListParam';
 import SingleValueParam from './helpers/SingleValueParam';
 import '../../styles/Param.scss';
-import { singleNumberValidCheck } from './helpers/InputValidators';
+import { binaryKeyListValidCheck, binaryKeyValidCheck } from './helpers/InputValidators';
 import { genUniqueRandNumList, balanceBSTArray, shuffleArray } from './helpers/InputBuilders';
 import { errorParamMsg } from './helpers/ParamMsg';
 import { ERRORS, EXAMPLES } from './helpers/ErrorExampleStrings';
@@ -71,10 +71,23 @@ function BSTParam({ mode, list, value }) {
     setBSTCase({ ...UNCHECKED, [e.target.name]: true });
   };
 
+  const handleInsert = (e) => {
+    e.preventDefault();
+    const inputValue = e.target[0].value.replace(/\s+/g, '');
+    const { valid, error } = binaryKeyListValidCheck(inputValue);
+    if (valid) {
+      const nodes = inputValue.split(',').map(Number);
+      dispatch(GlobalActions.RUN_ALGORITHM, { name: 'dst', mode: 'insertion', nodes });
+      setMessage(null);
+    } else {
+      setMessage(errorParamMsg(error, EXAMPLES.GEN_LIST_PARAM));
+    }
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     const inputValue = e.target[0].value;
-    const { valid, error } = singleNumberValidCheck(inputValue);
+    const { valid, error } = binaryKeyValidCheck(inputValue);
 
     if (valid) {
       const target = parseInt(inputValue, 10);
@@ -116,6 +129,7 @@ function BSTParam({ mode, list, value }) {
           ALGORITHM_NAME={INSERTION}
           EXAMPLE={EXAMPLES.GEN_LIST_PARAM}
           setMessage={setMessage}
+          handleSubmit={handleInsert}
         />
         <SingleValueParam
           name="dst"
