@@ -4,7 +4,7 @@ import dstInsertion from '../dstInsertion';
 
 const chunker = { add: () => {} };
 
-test('shows an empty pointer before the insertion point for either child, then clears it', () => {
+test('shows an empty pointer before the insertion point for either child, then reports the insert', () => {
   const vis = Object.fromEntries(Object.entries(dstInsertion.initVisualisers())
     .map(([name, visualiser]) => [name, visualiser.instance]));
   const frames = [];
@@ -19,10 +19,26 @@ test('shows an empty pointer before the insertion point for either child, then c
     const empty = frames.findIndex(frame => frame.bookmark === bookmark && frame.count === count);
     expect(frames[empty].status).toBe('c = Empty');
     expect(frames[empty + 1]).toEqual({ bookmark: 18, status: 'Insertion point found', count });
-    expect(frames[empty + 3].status).toBe('');
+    expect(frames[empty + 3].status).toBe(`Inserted: ${[4, 20][count - 1]}`);
     expect(frames[empty + 3].count).toBe(count + 1);
   }
-  expect(frames[frames.length - 1].status).toBe('');
+  expect(frames[frames.length - 1].status).toBe('Already inserted: 4');
+});
+
+test('shows tree status text in the mask table instead of the graph title', () => {
+  const vis = Object.fromEntries(Object.entries(dstInsertion.initVisualisers())
+    .map(([name, visualiser]) => [name, visualiser.instance]));
+  const statuses = [];
+  dstInsertion.run({
+    add: (bookmark, callback, args = []) => {
+      if (callback) callback(vis, ...args);
+      if (statuses[statuses.length - 1] !== vis.mask.pointerStatus) statuses.push(vis.mask.pointerStatus);
+    },
+  }, { nodes: [13, 4] });
+
+  expect(statuses.slice(0, 4)).toEqual(['', 'Tree is empty', 'Insert: 13', 'Inserted: 13']);
+  expect(statuses).toContain('Insert: 4');
+  expect(statuses[statuses.length - 1]).toBe('Inserted: 4');
 });
 
 test('builds a digital search tree', () => {

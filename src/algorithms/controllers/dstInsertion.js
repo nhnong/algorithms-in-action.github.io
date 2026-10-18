@@ -128,7 +128,7 @@ export default {
     // });
     chunker.add(1,
       (vis) => {
-        vis.graph.setFunctionName("Tree is Empty");
+        vis.mask.setPointerStatus('Tree is empty');
         vis.graph.setZoom(0.65);
       },
       [],
@@ -136,8 +136,7 @@ export default {
 
     chunker.add(1,
       (vis, r) => {
-        vis.graph.setFunctionName("Insert:");
-        vis.graph.setFunctionInsertText(` ${r} `);
+        vis.mask.setPointerStatus(`Insert: ${r}`);
       },
       [root],
     );
@@ -153,7 +152,7 @@ export default {
         vis.graph.setPauseLayout(true);
         vis.graph.addNode(r);
         vis.graph.setNodePosition(r, position.x, position.y);
-        vis.graph.setFunctionName("Inserted:");
+        vis.mask.setPointerStatus(`Inserted: ${r}`);
         // vis.graph.setNodeColor(r, color_new);
       },
       [root, positions.get(root)],
@@ -183,10 +182,8 @@ export default {
             vis.graph.deselect(nodes[index - 1], visited[visited.length - 1]);
           }
 */
-          vis.graph.setFunctionName("Insert:");
-          vis.graph.setFunctionInsertText(` ${k} `);
           vis.mask.setBinary(k);
-          vis.mask.setPointerStatus('');
+          vis.mask.setPointerStatus(`Insert: ${k}`);
           vis.mask.setMask(mask, maskIndex);
         },
         [i, visitedList, root, element, initialMask, initialMaskIndex],
@@ -194,6 +191,7 @@ export default {
       visitedList = [null];
       chunker.add(7);
       let ptr = tree;
+      let duplicate = false;
       parent = root;
       chunker.add(13,
         (vis, c) => {
@@ -217,6 +215,7 @@ export default {
         );
 
         if (element === parent) {
+          duplicate = true;
           chunker.add('eq_key',
             (vis, p) => {
               vis.graph.setNodePointerText(p, 'p');
@@ -271,7 +270,7 @@ export default {
             chunker.add(
               10,
               (vis, e, p, position) => {
-                vis.mask.setPointerStatus('');
+                vis.mask.setPointerStatus(`Inserted: ${e}`);
                 vis.graph.clearSelect_Circle_Count();
                 vis.graph.addNode(e);
                 vis.graph.setNodePosition(e, position.x, position.y);
@@ -328,7 +327,7 @@ export default {
             chunker.add(
               11,
               (vis, e, p, position) => {
-                vis.mask.setPointerStatus('');
+                vis.mask.setPointerStatus(`Inserted: ${e}`);
                 vis.graph.clearSelect_Circle_Count();
                 vis.graph.addNode(e);
                 vis.graph.setNodePosition(e, position.x, position.y);
@@ -346,8 +345,8 @@ export default {
       }
       // deselect everything
       chunker.add('end',
-        (vis, el, visited) => {
-          vis.graph.setFunctionName("Inserted:");
+        (vis, el, visited, exists) => {
+          vis.mask.setPointerStatus(exists ? `Already inserted: ${el}` : `Inserted: ${el}`);
           for (let j = 1; j < visited.length; j++) {
             vis.graph.setEdgeColor(visited[j-1], visited[j], undefined);
             vis.graph.setNodeColor(visited[j], undefined);
@@ -355,7 +354,7 @@ export default {
           }
           vis.graph.clearSelect_Circle_Count();
         },
-        [element, visitedList],
+        [element, visitedList, duplicate],
       );
     }
     // for test
