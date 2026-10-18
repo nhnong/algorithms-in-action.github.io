@@ -612,8 +612,8 @@ const algorithmMetadata = {
     "category": "Insert/Search",
     "noDeploy": false,
     "keywords": ["radix", "RST", "binary", "trie"],
-    "controller": { "insertion": "trieInsertion" },
-    "pseudocode": { "insertion": "trieInsertion" },
+    "controller": { "operations": "trieInsertion", "insertion": "trieInsertion" },
+    "pseudocode": { "operations": "trie", "insertion": "trieInsertion" },
     "paramKey": "trie",
     "explanationKey": "trie",
     "extraInfoKey": "trie",
@@ -629,10 +629,12 @@ const algorithmMetadata = {
       "bit"
     ],
     "controller": {
+      "operations": "dstInsertion",
       "insertion": "dstInsertion",
       "search": "dstSearch"
     },
     "pseudocode": {
+      "operations": "dst",
       "insertion": "dstInsertion",
       "search": "dstSearch"
     },

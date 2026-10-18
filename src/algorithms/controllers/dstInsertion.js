@@ -27,6 +27,22 @@ const color_p = ALGO_COLOR_PALLETE.peach;
 const color_new = ALGO_COLOR_PALLETE.leaf;
 const color_p_c = ALGO_COLOR_PALLETE.peach; // p->c edge
 const color_p_new = ALGO_COLOR_PALLETE.leaf; // p->new edge
+const color_t = ALGO_COLOR_PALLETE.peach; // search pointer t
+const color_path = ALGO_COLOR_PALLETE.peach; // search path
+const color_found = ALGO_COLOR_PALLETE.leaf;
+const color_not_found = ALGO_COLOR_PALLETE.apple;
+
+// Clear the previous operation's colours and pointers.
+const clearHighlights = (graph) => {
+  graph.nodes.forEach(({ id }) => {
+    graph.setNodeColor(id, undefined);
+    graph.setNodePointerText(id, '');
+  });
+  graph.edges.forEach(({ source, target }) => {
+    graph.setEdgeColor(source, target, undefined);
+  });
+  graph.clearSelect_Circle_Count();
+};
 
 const buildFinalTree = (nodes, initialMask) => {
   const finalTree = { [nodes[0]]: {} };
@@ -77,27 +93,36 @@ export default {
    *
    * @param {object} chunker
    * @param {array} nodes array of numbers needs to be inserted
+   * @param {array} operations insert/search steps, e.g. from "5,7,?5"
    */
-  run(chunker, { nodes }) {
-    if (nodes.length === 0) return;
+  run(chunker, { nodes = [], operations }) {
+    const operationList = operations
+      || nodes.map(value => ({ type: 'insert', value }));
+    if (operationList.length === 0) return;
+    const keys = operationList.map(({ value }) => value);
+    const insertKeys = operationList
+      .filter(({ type }) => type === 'insert')
+      .map(({ value }) => value);
     let parent;
     let prev = null;
     let visitedList = [null];
     const tree = {};
-    const root = nodes[0];
-    tree[root] = {};
-    const maximumKey = Math.max(...nodes);
+    let root;
+    const maximumKey = Math.max(...keys);
     const maxBits = Math.floor(Math.log2(Math.max(maximumKey, 1))) + 1;
     const initialMaskIndex = maxBits - 1;
     const initialMask = 2 ** initialMaskIndex;
-    const finalTree = buildFinalTree(nodes, initialMask);
-    const positions = createTidyTreeLayout({
-      root,
-      getId: key => key,
-      getLeft: key => finalTree[key].left,
-      getRight: key => finalTree[key].right,
-      rootY: -260,
-    });
+    const finalTree = insertKeys.length > 0
+      ? buildFinalTree(insertKeys, initialMask) : {};
+    const positions = insertKeys.length > 0
+      ? createTidyTreeLayout({
+        root: insertKeys[0],
+        getId: key => key,
+        getLeft: key => finalTree[key].left,
+        getRight: key => finalTree[key].right,
+        rootY: -260,
+      })
+      : new Map();
 
     chunker.add(
       'init_b',
@@ -107,25 +132,9 @@ export default {
         vis.mask.setBinary(key);
         vis.mask.setMask(mask, maskIndex);
       },
-      [maxBits, root, initialMask, initialMaskIndex],
+      [maxBits, keys[0], initialMask, initialMaskIndex],
     );
 
-    // populate the ArrayTracer using nodes
-    // chunker.add(
-      // '1',
-      // (vis, elements) => {
-        // vis.array.set(elements);
-        // // vis.array.select(0); // the index of root element is 0
-        // // make a bit more room for tree
-        // vis.graph.setSize(2.5);
-        // vis.graph.setZoom(0.8);
-        // vis.array.setZoom(0.9);
-      // },
-      // [nodes],
-    // );
-    // chunker.add('1', (vis) => {
-      // vis.array.select(0); // the index of root element is 0
-    // });
     chunker.add(1,
       (vis) => {
         vis.mask.setPointerStatus('Tree is empty');
@@ -134,59 +143,46 @@ export default {
       [],
     );
 
-    chunker.add(1,
-      (vis, r) => {
-        vis.mask.setPointerStatus(`Insert: ${r}`);
-      },
-      [root],
-    );
-    chunker.add(7,
-      (vis, r) => {
-        // vis.graph.setFunctionName("Insert:");
-        // vis.graph.setFunctionInsertText(` ${r} `);
-      },
-      [root],
-    );
-    chunker.add(8,
-      (vis, r, position) => {
-        vis.graph.setPauseLayout(true);
-        vis.graph.addNode(r);
-        vis.graph.setNodePosition(r, position.x, position.y);
-        vis.mask.setPointerStatus(`Inserted: ${r}`);
-        // vis.graph.setNodeColor(r, color_new);
-      },
-      [root, positions.get(root)],
-    );
-/*
-    chunker.add('end',
-      (vis, r) => {
-        vis.graph.setNodeColor(r, undefined);
-      },
-      [root]
-    );
-*/
-    for (let i = 1; i < nodes.length; i++) {
-
-      // BST_Insert() call
-      prev = null;
-      const element = nodes[i];
-      let mask = initialMask;
-      chunker.add(
-        1,
-        (vis, index, visited, rr, k, mask, maskIndex) => {
-/*
-          for (let j = 1; j < visited.length; j++) {
-            vis.graph.leave(visited[j], visited[j - 1]);
-          }
-          if (nodes[index - 1] !== visited[visited.length - 1]) {
-            vis.graph.deselect(nodes[index - 1], visited[visited.length - 1]);
-          }
-*/
+    const insertRoot = (r) => {
+      root = r;
+      tree[root] = {};
+      chunker.add(1,
+        (vis, k, mask, maskIndex) => {
+          clearHighlights(vis.graph);
           vis.mask.setBinary(k);
           vis.mask.setPointerStatus(`Insert: ${k}`);
           vis.mask.setMask(mask, maskIndex);
         },
-        [i, visitedList, root, element, initialMask, initialMaskIndex],
+        [root, initialMask, initialMaskIndex],
+      );
+      chunker.add(7);
+      chunker.add(8,
+        (vis, k, position) => {
+          vis.graph.setPauseLayout(true);
+          vis.graph.addNode(k);
+          vis.graph.setNodePosition(k, position.x, position.y);
+          vis.mask.setPointerStatus(`Inserted: ${k}`);
+        },
+        [root, positions.get(root)],
+      );
+    };
+
+    const insert = (element) => {
+      if (root === undefined) {
+        insertRoot(element);
+        return;
+      }
+      prev = null;
+      let mask = initialMask;
+      chunker.add(
+        1,
+        (vis, k, mask, maskIndex) => {
+          clearHighlights(vis.graph);
+          vis.mask.setBinary(k);
+          vis.mask.setPointerStatus(`Insert: ${k}`);
+          vis.mask.setMask(mask, maskIndex);
+        },
+        [element, initialMask, initialMaskIndex],
       );
       visitedList = [null];
       chunker.add(7);
@@ -356,7 +352,78 @@ export default {
         },
         [element, visitedList, duplicate],
       );
-    }
+    };
+
+    const search = (target) => {
+      let t = root;
+      let mask = initialMask;
+      let maskIndex = initialMaskIndex;
+      chunker.add('DST_Search(t, k)',
+        (vis, k, start) => {
+          clearHighlights(vis.graph);
+          vis.mask.setBinary(k);
+          vis.mask.setPointerStatus(`Search: ${k}`);
+          if (start !== undefined) {
+            vis.graph.setNodeColor(start, color_t);
+            vis.graph.setNodePointerText(start, 't');
+          }
+        },
+        [target, t],
+      );
+      chunker.add('set M', (vis, m, index) => {
+        vis.mask.setMask(m, index);
+      }, [mask, maskIndex]);
+      /* eslint-disable no-constant-condition */
+      while (true) {
+        chunker.add('while t not Empty');
+        if (t === undefined) {
+          chunker.add('return NotFound', (vis, k) => {
+            vis.mask.setPointerStatus(`Not found: ${k}`);
+          }, [target]);
+          return;
+        }
+        chunker.add('if t.key = k.key', (vis, current, found) => {
+          vis.graph.setNodeColor(current, found ? color_found : color_not_found);
+        }, [t, t === target]);
+        if (t === target) {
+          chunker.add('return t', (vis, k) => {
+            vis.mask.setPointerStatus(`Found: ${k}`);
+          }, [target]);
+          return;
+        }
+        chunker.add('key not equal', (vis, current) => {
+          vis.graph.setNodeColor(current, color_t);
+        }, [t]);
+        chunker.add('if mask bit of k.key=0');
+        const goLeft = (target & mask) === 0;
+        const oldT = t;
+        t = goLeft ? tree[oldT].left : tree[oldT].right;
+        const bookmark = goLeft ? 't <- t.left' : 't <- t.right';
+        if (t !== undefined) {
+          chunker.add(bookmark, (vis, next, prevNode) => {
+            vis.graph.setNodeColor(prevNode, color_path);
+            vis.graph.setNodePointerText(prevNode, '');
+            vis.graph.setEdgeColor(prevNode, next, color_path);
+            vis.graph.setNodeColor(next, color_t);
+            vis.graph.setNodePointerText(next, 't');
+          }, [t, oldT]);
+        } else {
+          chunker.add(bookmark, (vis) => {
+            vis.mask.setPointerStatus('t = Empty');
+          });
+        }
+        mask >>= 1;
+        maskIndex--;
+        chunker.add('m <- m >> 1', (vis, m, index) => {
+          vis.mask.setMask(m, index);
+        }, [mask, maskIndex]);
+      }
+    };
+
+    operationList.forEach(({ type, value }) => {
+      if (type === 'search') search(value);
+      else insert(value);
+    });
     // for test
     // eslint-disable-next-line consistent-return
     return tree;

@@ -79,3 +79,46 @@ test('shows the current key and mask bit while traversing', () => {
     highlightedBit: [3],
   });
 });
+
+const statusesFor = (controller, input) => {
+  const vis = Object.fromEntries(Object.entries(controller.initVisualisers())
+    .map(([name, visualiser]) => [name, visualiser.instance]));
+  const statuses = [];
+  controller.run({
+    add: (bookmark, callback, args = []) => {
+      if (callback) callback(vis, ...args);
+      if (statuses[statuses.length - 1] !== vis.mask.pointerStatus) statuses.push(vis.mask.pointerStatus);
+    },
+  }, input);
+  return statuses;
+};
+
+test('runs insert & search operations in order', () => {
+  const operations = [
+    { type: 'search', value: 5 },
+    { type: 'insert', value: 13 },
+    { type: 'insert', value: 4 },
+    { type: 'search', value: 4 },
+    { type: 'search', value: 20 },
+  ];
+  const statuses = statusesFor(dstInsertion, { operations });
+  const order = ['Search: 5', 'Not found: 5', 'Insert: 13', 'Inserted: 13',
+    'Insert: 4', 'Inserted: 4', 'Search: 4', 'Found: 4', 'Search: 20', 'Not found: 20'];
+  expect(order.map(status => statuses.indexOf(status)))
+    .toEqual([...order.map(status => statuses.indexOf(status))].sort((a, b) => a - b));
+  expect(order.every(status => statuses.includes(status))).toBe(true);
+  expect(dstInsertion.run(chunker, { operations })).toEqual({ 13: { left: 4 }, 4: {} });
+});
+
+test('handles duplicate inserts and repeated searches', () => {
+  const operations = [
+    { type: 'insert', value: 13 },
+    { type: 'insert', value: 13 },
+    { type: 'search', value: 13 },
+    { type: 'search', value: 13 },
+  ];
+  const statuses = statusesFor(dstInsertion, { operations });
+  expect(statuses.filter(status => status === 'Found: 13')).toHaveLength(2);
+  expect(statuses.filter(status => /^Search: 13/.test(status)).length).toBeGreaterThan(0);
+  expect(dstInsertion.run(chunker, { operations })).toEqual({ 13: {} });
+});

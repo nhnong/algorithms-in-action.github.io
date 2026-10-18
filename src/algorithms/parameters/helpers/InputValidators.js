@@ -44,6 +44,24 @@ export const binaryKeyValidCheck = (t) => {
   return { valid: true, error: null };
 };
 
+// Insert & search input for the binary trie and DST, e.g. "5,7,?5,2":
+// a key is inserted, a key prefixed with ? is searched for.
+export const binaryOperationListValidCheck = (t) => {
+  if (!t || t.trim() === "") {
+    return { valid: false, error: ERRORS.GEN_EMPTY_INPUT, operations: [] };
+  }
+  if (!/^\??[0-9]+(,\??[0-9]+)*$/.test(t)) {
+    return { valid: false, error: ERRORS.GEN_BINARY_OPERATION_LIST, operations: [] };
+  }
+  const operations = t.split(',').map((token) => (token.startsWith('?')
+    ? { type: 'search', value: Number(token.slice(1)) }
+    : { type: 'insert', value: Number(token) }));
+  if (!operations.every(({ value }) => value <= MAX_BINARY_KEY)) {
+    return { valid: false, error: ERRORS.GEN_BINARY_KEY_RANGE, operations: [] };
+  }
+  return { valid: true, error: null, operations };
+};
+
 export const stringListValidCheck = (t) => {
   if (!t || t.trim() === "") {
     return { valid: false, error: ERRORS.GEN_EMPTY_INPUT };
