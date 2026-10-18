@@ -103,6 +103,7 @@ export default {
       'init_b',
       (vis, bits, key, mask, maskIndex) => {
         vis.mask.setMaxBits(bits);
+        vis.mask.setPointerStatus('');
         vis.mask.setBinary(key);
         vis.mask.setMask(mask, maskIndex);
       },
@@ -185,6 +186,7 @@ export default {
           vis.graph.setFunctionName("Insert:");
           vis.graph.setFunctionInsertText(` ${k} `);
           vis.mask.setBinary(k);
+          vis.mask.setPointerStatus('');
           vis.mask.setMask(mask, maskIndex);
         },
         [i, visitedList, root, element, initialMask, initialMaskIndex],
@@ -255,17 +257,22 @@ export default {
             chunker.add(16,
               (vis, p) => {
                 vis.graph.setNodePointerText(p, 'p');
-                vis.graph.setSelect_Circle_Count(p);
+                vis.mask.setPointerStatus('c = Empty');
               },
               [parent]
             );
-            chunker.add(18);
+            chunker.add(18, (vis, p) => {
+              vis.mask.setPointerStatus('Insertion point found');
+              vis.graph.setSelect_Circle_Count(p);
+            }, [parent]);
             chunker.add(9);
             tree[parent].left = element;
             tree[element] = {};
             chunker.add(
               10,
               (vis, e, p, position) => {
+                vis.mask.setPointerStatus('');
+                vis.graph.clearSelect_Circle_Count();
                 vis.graph.addNode(e);
                 vis.graph.setNodePosition(e, position.x, position.y);
                 vis.graph.addEdge(p, e, { direction: 'left' });
@@ -307,17 +314,22 @@ export default {
             chunker.add(17,
               (vis, p) => {
                 vis.graph.setNodePointerText(p, 'p');
-                vis.graph.setSelect_Circle_Count(p);
+                vis.mask.setPointerStatus('c = Empty');
               },
               [parent]
             );
-            chunker.add(18);
+            chunker.add(18, (vis, p) => {
+              vis.mask.setPointerStatus('Insertion point found');
+              vis.graph.setSelect_Circle_Count(p);
+            }, [parent]);
             chunker.add(9);
             tree[parent].right = element;
             tree[element] = {};
             chunker.add(
               11,
               (vis, e, p, position) => {
+                vis.mask.setPointerStatus('');
+                vis.graph.clearSelect_Circle_Count();
                 vis.graph.addNode(e);
                 vis.graph.setNodePosition(e, position.x, position.y);
                 vis.graph.addEdge(p, e, { direction: 'right' });
