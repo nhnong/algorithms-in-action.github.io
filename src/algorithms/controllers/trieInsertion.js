@@ -11,13 +11,18 @@ export default {
     };
   },
 
-  run(chunker, { nodes }) {
-    const bits = Math.max(1, ...nodes.map(key => key.toString(2).length));
-    const words = nodes.map(key => key.toString(2).padStart(bits, '0'));
+  // operations: insert/search steps, e.g. from "5,7,?5"
+  run(chunker, { nodes = [], operations }) {
+    const operationList = operations
+      || nodes.map(value => ({ type: 'insert', value }));
+    const keys = operationList.map(({ value }) => value);
+    const bits = Math.max(1, ...keys.map(key => key.toString(2).length));
+    const toWord = key => key.toString(2).padStart(bits, '0');
     const levelGap = 100;
     const root = { id: 'root', children: {} };
     // Reserve the final layout only. Animation still creates nodes one at a time.
-    words.forEach(word => {
+    operationList.filter(({ type }) => type === 'insert').forEach(({ value }) => {
+      const word = toWord(value);
       let node = root;
       [...word].forEach(digit => {
         if (!node.children[digit]) {
@@ -45,17 +50,17 @@ export default {
       vis.graph.setNodePosition('root', position.x, position.y);
       vis.graph.setNodePointerText('root', 't');
       vis.graph.setNodeColor('root', ALGO_COLOR_PALLETE.sky);
-      vis.mask.presentation = 'trie';
       vis.mask.setMaxBits(bits);
-      vis.mask.setBinary(nodes[0] || 0);
+      vis.mask.setBinary(keys[0] || 0);
       vis.mask.setMask(2 ** (bits - 1), bits - 1);
       vis.mask.setPointerStatus('Ready to insert');
     });
 
     const created = new Set(['root']);
     const terminals = new Set();
-    nodes.forEach((key, index) => {
-      chunker.add(1, (vis, k, width) => {
+    // Reset colours and put t back at the root for the next operation.
+    const start = (bookmark, status, key) => {
+      chunker.add(bookmark, (vis, k, width, text) => {
         vis.graph.nodes.forEach(node => {
           vis.graph.setNodePointerText(node.id, '');
           vis.graph.setNodeColor(node.id, undefined);
@@ -66,10 +71,54 @@ export default {
         vis.graph.setNodeColor('root', ALGO_COLOR_PALLETE.sky);
         vis.mask.setBinary(k);
         vis.mask.setMask(2 ** (width - 1), width - 1);
-        vis.mask.setPointerStatus(`Insert: ${k}`);
-      }, [key, bits]);
+        vis.mask.setPointerStatus(text);
+      }, [key, bits, `${status}: ${key}`]);
+    };
+
+    const search = (key) => {
+      start('search', 'Search', key);
       let node = root;
-      [...words[index]].forEach((digit, depth) => {
+      const digits = [...toWord(key)];
+      for (let depth = 0; depth < digits.length; depth += 1) {
+        const digit = digits[depth];
+        chunker.add('search-digit', (vis, bitIndex, d) => {
+          vis.mask.setMask(2 ** bitIndex, bitIndex);
+          vis.mask.setPointerStatus(`Examining digit ${d}`);
+        }, [bits - depth - 1, digit]);
+        const next = node.children[digit];
+        const missing = !next || !created.has(next.id);
+        chunker.add('search-test-child', (vis, absent, d) => {
+          vis.mask.setPointerStatus(absent ? `No child for ${d}` : `Follow existing ${d} child`);
+        }, [missing, digit]);
+        if (missing) {
+          chunker.add('search-no-child', (vis, id, k) => {
+            vis.graph.setNodeColor(id, ALGO_COLOR_PALLETE.apple);
+            vis.mask.setPointerStatus(`Not found: ${k}`);
+          }, [node.id, key]);
+          return;
+        }
+        chunker.add('search-move', (vis, p, id, d) => {
+          vis.graph.setNodePointerText(p, '');
+          vis.graph.setNodePointerText(id, 't');
+          vis.graph.setNodeColor(p, undefined);
+          vis.graph.setNodeColor(id, ALGO_COLOR_PALLETE.sky);
+          vis.graph.setEdgeColor(p, id, ALGO_COLOR_PALLETE.peach);
+          vis.mask.setPointerStatus(`Moved t to ${d} child`);
+        }, [node.id, next.id, digit]);
+        node = next;
+      }
+      const found = terminals.has(node.id);
+      chunker.add('search-test-end');
+      chunker.add(found ? 'search-found' : 'search-not-end', (vis, id, k, isFound) => {
+        vis.graph.setNodeColor(id, isFound ? ALGO_COLOR_PALLETE.leaf : ALGO_COLOR_PALLETE.apple);
+        vis.mask.setPointerStatus(isFound ? `Found: ${k}` : `Not found: ${k}`);
+      }, [node.id, key, found]);
+    };
+
+    const insert = (key) => {
+      start(1, 'Insert', key);
+      let node = root;
+      [...toWord(key)].forEach((digit, depth) => {
         const parent = node.id;
         node = node.children[digit];
         const child = node.id;
@@ -110,6 +159,11 @@ export default {
         vis.graph.setSelect_Circle_Count(id);
         vis.mask.setPointerStatus(exists ? `Already inserted: ${k}` : `Inserted: ${k}`);
       }, [node.id, key, duplicate]);
+    };
+
+    operationList.forEach(({ type, value }) => {
+      if (type === 'search') search(value);
+      else insert(value);
     });
     return root;
   },
