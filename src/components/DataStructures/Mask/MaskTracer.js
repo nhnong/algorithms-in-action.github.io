@@ -26,7 +26,8 @@ class MaskTracer extends Tracer {
     this.addBase4 = b;
   }
 
-  // Overlay only: 4 also shows base 4 digits, two bits per digit.
+  // Overlay only: 4 also shows base 4 digits, two bits per digit;
+  // 10 shows the key's decimal digits instead of bits.
   setRadix(radix) {
     this.radix = radix;
   }

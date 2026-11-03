@@ -27,6 +27,38 @@ class MaskRenderer extends Renderer {
       pointerStatus,
       radix = 2,
     } = this.props.data;
+    const status = pointerStatus != null && (
+      <div className={styles.pointerStatus} role="status" aria-live="polite">
+        {pointerStatus}
+      </div>
+    );
+    if (overlay && radix === 10) {
+      // Decimal trie: keys keep their own length, the mask is the place
+      // value of the highlighted digit.
+      const digit = Math.floor(binaryData / maskData) % 10;
+      return (
+        <div className={styles.overlayContainer}>
+          <BinaryRenderer
+            header={"Current key"}
+            data={binaryData}
+            highlight={highlight}
+            base={10}
+            compact={true}
+          />
+          <BinaryRenderer
+            header={"Place value"}
+            data={maskData}
+            highlight={highlight}
+            base={10}
+            compact={true}
+          />
+          <div className={styles.decision}>
+            DIGIT {digit} &rarr; CHILD {digit}
+          </div>
+          {status}
+        </div>
+      );
+    }
     if (overlay) {
       // Trie and DST share this panel: group long keys into nibbles so
       // they wrap the same way instead of overflowing.
@@ -77,11 +109,7 @@ class MaskRenderer extends Renderer {
               ? <>DIGIT {selectedDigit} &rarr; BRANCH {selectedDigit}</>
               : <>BIT {selectedBit} &rarr; {direction}</>}
           </div>
-          {pointerStatus != null && (
-            <div className={styles.pointerStatus} role="status" aria-live="polite">
-              {pointerStatus}
-            </div>
-          )}
+          {status}
         </div>
       );
     }

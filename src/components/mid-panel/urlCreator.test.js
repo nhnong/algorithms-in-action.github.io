@@ -9,3 +9,9 @@ test('adds radix to Insert/Search URLs only when set', () => {
   expect(createUrl('/?alg=trie', 'Insert/Search', { ...context, radix: '4' }))
     .toBe('/?alg=trie&list=5,7,?5&value=&smallTable=&radix=4');
 });
+
+test('adds a base 10 radix and leaves it out when cleared', () => {
+  expect(createUrl('/?alg=trie', 'Insert/Search', { ...context, radix: '10' }))
+    .toBe('/?alg=trie&list=5,7,?5&value=&smallTable=&radix=10');
+  expect(createUrl('/?alg=bst', 'Insert/Search', { ...context, radix: '' })).not.toContain('radix');
+});
