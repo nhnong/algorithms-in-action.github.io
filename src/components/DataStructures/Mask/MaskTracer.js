@@ -14,6 +14,7 @@ class MaskTracer extends Tracer {
     this.maskData = 0;
     this.highlight = [];
     this.addBase4 = false;
+    this.radix = 2;
     this.pointerStatus = null;
   }
 
@@ -23,6 +24,11 @@ class MaskTracer extends Tracer {
 
   setAddBase4(b) {
     this.addBase4 = b;
+  }
+
+  // Overlay only: 4 also shows base 4 digits, two bits per digit.
+  setRadix(radix) {
+    this.radix = radix;
   }
 
   setMaxBits(bits) {
