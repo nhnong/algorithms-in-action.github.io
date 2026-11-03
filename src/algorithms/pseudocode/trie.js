@@ -1,6 +1,6 @@
 import parse from '../../pseudocode/parse';
 
-// Binary trie insert & search, used by the "operations" mode:
+// Radix search trie insert & search (any base), used by the "operations" mode:
 // input like 5,7,?5 inserts 5 and 7 then searches for 5.
 export default parse(`
 \\Code{
