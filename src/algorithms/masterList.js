@@ -608,10 +608,10 @@ const algorithmMetadata = {
   },
 
   "trie": {
-    "name": "Binary Trie",
+    "name": "Radix Search Trie",
     "category": "Insert/Search",
     "noDeploy": false,
-    "keywords": ["radix", "RST", "binary", "trie"],
+    "keywords": ["radix", "RST", "binary", "decimal", "trie"],
     "controller": { "operations": "trieInsertion", "insertion": "trieInsertion" },
     "pseudocode": { "operations": "trie", "insertion": "trieInsertion" },
     "paramKey": "trie",
