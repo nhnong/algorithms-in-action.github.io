@@ -19,13 +19,14 @@ const BRANCH_TEXT = {
   4: 'Keys are written in base 4; digits 0 to 3 pick a branch from left to right.',
 };
 
-function TrieParam({ list }) {
+function TrieParam({ list, radix: urlRadix }) {
   const { dispatch } = useContext(GlobalContext);
-  const { setNodes } = useContext(URLContext);
+  const { setNodes, setRadix: setUrlRadix } = useContext(URLContext);
   const [keys, setKeys] = useState(list || DEFAULT_KEYS);
-  const [radix, setRadix] = useState(2);
+  const [radix, setRadix] = useState(RADIXES.includes(Number(urlRadix)) ? Number(urlRadix) : 2);
   const [message, setMessage] = useState(null);
   useEffect(() => { setNodes(keys); }, [keys, setNodes]);
+  useEffect(() => { setUrlRadix(String(radix)); }, [radix, setUrlRadix]);
 
   const runInput = (input, base) => {
     const { valid, error, operations } = binaryOperationListValidCheck(input.replace(/\s+/g, ''));
@@ -73,6 +74,9 @@ function TrieParam({ list }) {
   );
 }
 
-TrieParam.propTypes = { list: PropTypes.oneOfType([PropTypes.string, PropTypes.array]) };
-TrieParam.defaultProps = { list: '' };
+TrieParam.propTypes = {
+  list: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+  radix: PropTypes.string,
+};
+TrieParam.defaultProps = { list: '', radix: '' };
 export default withAlgorithmParams(TrieParam);
