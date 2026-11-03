@@ -10,7 +10,8 @@ export function createUrl(baseUrl, category, context) {
      graphMin, 
      graphMax,
      compressed,
-     small
+     small,
+     radix
    } = context;
 
    let url = baseUrl;
@@ -22,6 +23,7 @@ export function createUrl(baseUrl, category, context) {
  
      case 'Insert/Search':
        url += `&list=${nodes}&value=${searchValue}&smallTable=${small}`;
+       if (typeof radix === 'number') url += `&radix=${radix}`;
        break;
  
      case 'String Search':

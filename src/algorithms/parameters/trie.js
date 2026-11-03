@@ -14,18 +14,24 @@ import { errorParamMsg } from './helpers/ParamMsg';
 const DEFAULT_KEYS = ['5', '7', '2', '?7', '?3'];
 const EXAMPLE = '5,7,?5,2';
 const RADIXES = [2, 10];
+// Shared URLs carry ?radix=10; anything else falls back to base 2.
+export const radixFromUrl = value => (RADIXES.includes(Number(value)) ? Number(value) : 2);
 const HINTS = {
   2: '0 goes left; 1 goes right.',
   10: 'Each decimal digit picks one of 10 children. Keys keep their own length, so 12 ends on the node above 125.',
 };
 
-function TrieParam({ list }) {
+function TrieParam({ list, radix: urlRadix }) {
   const { dispatch } = useContext(GlobalContext);
-  const { setNodes } = useContext(URLContext);
+  const { setNodes, setRadix: setUrlRadix } = useContext(URLContext);
   const [keys, setKeys] = useState(list || DEFAULT_KEYS);
-  const [radix, setRadix] = useState(2);
+  const [radix, setRadix] = useState(radixFromUrl(urlRadix));
   const [message, setMessage] = useState(null);
   useEffect(() => { setNodes(keys); }, [keys, setNodes]);
+  useEffect(() => {
+    setUrlRadix(radix);
+    return () => setUrlRadix([]);
+  }, [radix, setUrlRadix]);
 
   const runInput = (text, base) => {
     const input = text.replace(/\s+/g, '');
@@ -67,6 +73,9 @@ function TrieParam({ list }) {
   );
 }
 
-TrieParam.propTypes = { list: PropTypes.oneOfType([PropTypes.string, PropTypes.array]) };
-TrieParam.defaultProps = { list: '' };
+TrieParam.propTypes = {
+  list: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+  radix: PropTypes.string,
+};
+TrieParam.defaultProps = { list: '', radix: undefined };
 export default withAlgorithmParams(TrieParam);
