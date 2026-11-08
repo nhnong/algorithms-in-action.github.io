@@ -66,7 +66,7 @@ export default {
         root, radix, nodeGap: 100, slotGap: radix === 2 ? 110 : 70, levelGap, rootY: -digits * levelGap / 2,
       });
     const maxX = Math.max(...Array.from(positions.values(), p => Math.abs(p.x)));
-    chunker.add(1, vis => {
+    chunker.add('insert', vis => {
       vis.graph.setPauseLayout(true);
       vis.graph.setZoom(1);
       vis.graph.presentation = 'trie';
@@ -147,23 +147,23 @@ export default {
     };
 
     const insert = (key) => {
-      start(1, 'Insert', key);
+      start('insert', 'Insert', key);
       let node = root;
       [...toWord(key)].forEach((digit, depth) => {
         const parent = node.id;
         node = node.children[digit];
         const child = node.id;
-        chunker.add(2, (vis, mask, d) => {
+        chunker.add('insert-digit', (vis, mask, d) => {
           vis.mask.setMask(...mask);
           vis.mask.setPointerStatus(`Examining digit ${d}`);
         }, [maskFor(key, depth), digit]);
         const missing = !created.has(child);
-        chunker.add(3, (vis, absent, d) => {
+        chunker.add('insert-test-child', (vis, absent, d) => {
           vis.mask.setPointerStatus(absent ? `No child for ${d}` : `Follow existing ${d} child`);
         }, [missing, digit]);
         if (missing) {
           created.add(child);
-          chunker.add(4, (vis, id, p, d, position, direction) => {
+          chunker.add('insert-create-child', (vis, id, p, d, position, direction) => {
             vis.graph.addNode(id, '');
             vis.graph.setNodePosition(id, position.x, position.y);
             vis.graph.addEdge(p, id, { weight: d, direction });
@@ -171,7 +171,7 @@ export default {
             vis.mask.setPointerStatus(`Created child for ${d}`);
           }, [child, parent, digit, positions.get(child), Number(digit) < radix / 2 ? 'left' : 'right']);
         }
-        chunker.add(5, (vis, p, id, d) => {
+        chunker.add('insert-move', (vis, p, id, d) => {
           vis.graph.setNodePointerText(p, '');
           vis.graph.setNodePointerText(id, 't');
           vis.graph.setNodeColor(p, undefined);
@@ -189,7 +189,7 @@ export default {
       let message = `Inserted: ${key}`;
       if (duplicate) message = `Already inserted: ${key}`;
       else if (internal) message = `Inserted: ${key} (prefix of a longer key, no new node)`;
-      chunker.add(6, (vis, id, k, text) => {
+      chunker.add('insert-end', (vis, id, k, text) => {
         vis.graph.updateNode(id, String(k));
         vis.graph.findNode(id).isTerminal = true;
         vis.graph.setNodeColor(id, undefined);

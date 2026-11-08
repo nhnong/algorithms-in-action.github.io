@@ -489,6 +489,9 @@ class GraphRenderer extends Renderer {
     //   this.zoom = newZoom;
     //   this.refresh();
     // }
+    // Trie digit labels are drawn after every edge so a later edge
+    // cannot cover an earlier label.
+    const trieLabels = [];
 
     return (
       <svg
@@ -655,21 +658,37 @@ class GraphRenderer extends Renderer {
                 pathSvg = `M${sx},${sy} L${ex},${ey}`;
               }
               // console.log(sx,sy,ex,ey,cx,cy);
+              const edgeClass = classes(
+                styles.edge,
+                targetNode.sorted && styles.sorted,
+                selectedCount && styles.selected,
+                !selectedCount && visitedCount && styles.visited,
+                visitedCount0 && styles.visited,
+                visitedCount1 && styles.visited1,
+                visitedCount2 && styles.visited2,
+                visitedCount3 && styles.visited3,
+                visitedCount4 && styles.visited4
+              );
+              const label = isWeighted && (
+                <g transform={`translate(${labelX},${labelY})`}>
+                  <text
+                    className={styles.weight}
+                    transform="rotate(0)"
+                    y={isTrie ? 0 : -edgeWeightGap}
+                  >
+                    {this.toString(weight)}
+                  </text>
+                </g>
+              );
+              if (isTrie && label) {
+                trieLabels.push(
+                  <g className={edgeClass} key={`${source}-${target}-label`}>
+                    {label}
+                  </g>
+                );
+              }
               return (
-                <g
-                  className={classes(
-                    styles.edge,
-                    targetNode.sorted && styles.sorted,
-                    selectedCount && styles.selected,
-                    !selectedCount && visitedCount && styles.visited,
-                    visitedCount0 && styles.visited,
-                    visitedCount1 && styles.visited1,
-                    visitedCount2 && styles.visited2,
-                    visitedCount3 && styles.visited3,
-                    visitedCount4 && styles.visited4
-                  )}
-                  key={`${source}-${target}`}
-                >
+                <g className={edgeClass} key={`${source}-${target}`}>
                   <path
                     d={pathSvg}
                     style={{
@@ -681,20 +700,11 @@ class GraphRenderer extends Renderer {
                       isDirected && styles.directed
                     )}
                   />
-                  {isWeighted && (
-                    <g transform={`translate(${labelX},${labelY})`}>
-                      <text
-                        className={styles.weight}
-                        transform="rotate(0)"
-                        y={isTrie ? 0 : -edgeWeightGap}
-                      >
-                        {this.toString(weight)}
-                      </text>
-                    </g>
-                  )}
+                  {!isTrie && label}
                 </g>
               );
             })}
+          {trieLabels}
 
           {/* Select rectangle */}
           <g>

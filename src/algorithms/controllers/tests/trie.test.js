@@ -1,13 +1,13 @@
 /* eslint-disable no-undef */
 
-import trieInsertion, { keyDigits } from '../trieInsertion';
+import trie, { keyDigits } from '../trie';
 import { createTidyTreeLayout } from '../helpers/tidyTreeLayout';
 
 const statusesFor = (operations, radix) => {
-  const vis = Object.fromEntries(Object.entries(trieInsertion.initVisualisers({ radix }))
+  const vis = Object.fromEntries(Object.entries(trie.initVisualisers({ radix }))
     .map(([name, visualiser]) => [name, visualiser.instance]));
   const statuses = [];
-  trieInsertion.run({
+  trie.run({
     add: (bookmark, callback, args = []) => {
       if (callback) callback(vis, ...args);
       if (statuses[statuses.length - 1] !== vis.mask.pointerStatus) statuses.push(vis.mask.pointerStatus);
@@ -36,7 +36,7 @@ test('searches the trie as built so far', () => {
 
 test('still accepts a plain insert list', () => {
   expect(statusesFor(undefined)).toEqual(expect.any(Array));
-  const root = trieInsertion.run({ add: () => {} }, { nodes: [5, 7] });
+  const root = trie.run({ add: () => {} }, { nodes: [5, 7] });
   expect(Object.keys(root.children)).toEqual(['1']);
 });
 
@@ -52,10 +52,10 @@ test('handles duplicate inserts and repeated searches', () => {
 });
 
 const visualisersFor = (params) => {
-  const vis = Object.fromEntries(Object.entries(trieInsertion.initVisualisers(params))
+  const vis = Object.fromEntries(Object.entries(trie.initVisualisers(params))
     .map(([name, visualiser]) => [name, visualiser.instance]));
   const masks = [];
-  const root = trieInsertion.run({
+  const root = trie.run({
     add: (bookmark, callback, args = []) => {
       if (callback) callback(vis, ...args);
       masks.push([vis.mask.maskData, [...vis.mask.highlight]]);
@@ -93,10 +93,10 @@ describe('base 4', () => {
   });
 
   test('inserts and searches with base 4 paths', () => {
-    const vis = Object.fromEntries(Object.entries(trieInsertion.initVisualisers({ radix: 4 }))
+    const vis = Object.fromEntries(Object.entries(trie.initVisualisers({ radix: 4 }))
       .map(([name, visualiser]) => [name, visualiser.instance]));
     const statuses = [];
-    trieInsertion.run({
+    trie.run({
       add: (bookmark, callback, args = []) => {
         if (callback) callback(vis, ...args);
         if (statuses[statuses.length - 1] !== vis.mask.pointerStatus) statuses.push(vis.mask.pointerStatus);
@@ -145,7 +145,7 @@ test('base 2 keeps the binary tidy layout', () => {
 });
 
 describe('base 10', () => {
-  const build = values => trieInsertion.run({ add: () => {} }, { nodes: values, radix: 10 });
+  const build = values => trie.run({ add: () => {} }, { nodes: values, radix: 10 });
 
   test('uses raw decimal digits without padding', () => {
     expect(keyDigits(7, 10, 3)).toBe('7');
@@ -201,13 +201,13 @@ describe('base 10', () => {
   });
 
   test('highlights each digit with its place value', () => {
-    const vis = Object.fromEntries(Object.entries(trieInsertion.initVisualisers({ radix: 10 }))
+    const vis = Object.fromEntries(Object.entries(trie.initVisualisers({ radix: 10 }))
       .map(([name, visualiser]) => [name, visualiser.instance]));
     const masks = [];
-    trieInsertion.run({
+    trie.run({
       add: (bookmark, callback, args = []) => {
         if (callback) callback(vis, ...args);
-        if (bookmark === 2) masks.push([vis.mask.maskData, vis.mask.highlight[0]]);
+        if (bookmark === 'insert-digit') masks.push([vis.mask.maskData, vis.mask.highlight[0]]);
       },
     }, { nodes: [125, 7], radix: 10 });
     expect(vis.mask.radix).toBe(10);
@@ -215,9 +215,9 @@ describe('base 10', () => {
   });
 
   test('lays out siblings without overlap', () => {
-    const vis = Object.fromEntries(Object.entries(trieInsertion.initVisualisers({ radix: 10 }))
+    const vis = Object.fromEntries(Object.entries(trie.initVisualisers({ radix: 10 }))
       .map(([name, visualiser]) => [name, visualiser.instance]));
-    trieInsertion.run({
+    trie.run({
       add: (bookmark, callback, args = []) => { if (callback) callback(vis, ...args); },
     }, { nodes: [10, 11, 19, 20, 29, 3, 125], radix: 10 });
     const byLevel = {};
