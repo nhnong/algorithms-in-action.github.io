@@ -627,16 +627,14 @@ class GraphRenderer extends Renderer {
               if (!sourceNode || !targetNode) return undefined;
               const { x: sx, y: sy } = sourceNode;
               let { x: ex, y: ey } = targetNode;
-              const mx = (sx + ex) / 2;
-              const my = (sy + ey) / 2;
               const dx = ex - sx;
               const dy = ey - sy;
-              // Place digit labels perpendicular to, and outside, each branch.
-              // The layout helper positions nodes; label clearance is rendering.
-              const labelOffset = isTrie ? (dx < 0 ? -24 : 24) : 0;
-              const labelLength = Math.hypot(dx, dy) || 1;
-              const labelX = mx + labelOffset * dy / labelLength;
-              const labelY = my - labelOffset * dx / labelLength;
+              // Trie digit labels sit on their own edge, past the midpoint
+              // where sibling edges in a wide fan have spread apart; the
+              // halo in the stylesheet cuts the edges beneath them.
+              const labelT = isTrie ? 0.6 : 0.5;
+              const labelX = sx + dx * labelT;
+              const labelY = sy + dy * labelT;
               if (isDirected) {
                 let length = Math.sqrt(dx * dx + dy * dy);
                 if (length !== 0) {
