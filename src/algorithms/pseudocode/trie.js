@@ -19,7 +19,7 @@ mark t as an end node \\B insert-end
 Trie_Search(k, t) // Return the end node for key k or NotFound \\B search
 for each digit in k // left to right scan of digits \\B search-digit
 \\In{
-    if no child of t for digit exists \\B search-test-child
+    if no child of t for digit exists \\B search-test-child 
     \\In{
         return NotFound \\B search-no-child
         \\Expl{ No stored key starts with the digits scanned so far.

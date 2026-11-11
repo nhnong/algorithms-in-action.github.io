@@ -9,6 +9,7 @@ import SymbolListParam from './helpers/SymbolListParam';
 import { withAlgorithmParams } from './helpers/urlHelpers';
 import { binaryOperationListValidCheck } from './helpers/InputValidators';
 import { errorParamMsg } from './helpers/ParamMsg';
+import { withStyles } from '@mui/styles';
 
 // A key is inserted, ?key searches for it.
 const DEFAULT_KEYS = ['5', '7', '2', '?7', '?3'];
@@ -21,6 +22,18 @@ const BRANCH_TEXT = {
   4: 'Keys are written in base 4; digits 0 to 3 pick a branch from left to right.',
   10: 'Each decimal digit picks one of 10 children. Keys keep their own length, so 12 ends on the node above 125.',
 };
+
+//Parameters used for blue radio buttons - referenced from other algorithms
+const BlueRadio = withStyles({
+  root: {
+    color: '#2289ff',
+    '&$checked': {
+      color: '#027aff',
+    },
+  },
+  checked: {},
+  // eslint-disable-next-line react/jsx-props-no-spreading
+})((props) => <Radio {...props} />)
 
 function TrieParam({ list, radix: urlRadix }) {
   const { dispatch } = useContext(GlobalContext);
@@ -70,7 +83,7 @@ function TrieParam({ list, radix: urlRadix }) {
       {RADIXES.map(base => (
         <FormControlLabel
           key={base}
-          control={<Radio checked={radix === base} onChange={changeRadix} value={base} name="radix" />}
+          control={<BlueRadio checked={radix === base} onChange={changeRadix} value={base} name="radix" />}
           label={`Base ${base}`}
           className="checkbox"
         />
