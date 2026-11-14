@@ -52,6 +52,7 @@ export { default as trie } from './trie.js';
 
 export { default as dstSearch } from './dstSearch.js';
 
+export { AVLTreeOperations, BSTOperations, BSTrecOperations } from './treeOperations';
 export { default as msort_list_bup } from './msort_list_bup.js';
 
 
